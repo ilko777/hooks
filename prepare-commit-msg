@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+import sys, os, re, subprocess
+from subprocess import PIPE,Popen
+
+commit_msg_filepath = sys.argv[1]
+
+getBranch = subprocess.Popen("git branch | grep '*' | sed 's/* //'", shell=True, stdout=subprocess.PIPE)
+branch = getBranch.stdout.read()
+task = re.search(r'[A-Z]{2,6}-\d{3,7}', branch)
+if task:
+    taskId =task.group(0)
+    
+    getComment = subprocess.Popen("cat " + commit_msg_filepath , shell=True, stdout=subprocess.PIPE)
+    comment = getComment.stdout.read().split(' ')
+    comment = ' '.join(comment)
+    
+    if taskId in comment:
+        content = comment
+    else:
+        content = "[" + taskId + "] : " + comment
+    
+    f = open(commit_msg_filepath, 'r+')
+    f.write(content)
+    f.close()
+else:
+    print ('\x1b[1;31m' + 'your branch is out of pattern, please add task number' + '\x1b[0m')
